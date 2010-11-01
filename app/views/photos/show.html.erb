@@ -1,43 +1,75 @@
-
-
-
-
 <p id="notice"><%= notice %></p>
-<%# image_tag @photo.image.url %>
 
-<%= link_to 'Edit', edit_photo_path(@photo) %> |
-<%= link_to 'Back', photos_path %>
+
 
 
 <div id="photo_nav_block">
   <%= render :partial => "photo" %>
 </div>
+<%= link_to 'Edit', edit_photo_path(@photo) %> |
+<%= link_to 'Back', photos_path %>
 
 
 <script type="text/javascript">
+
+/* 
+Gowalla Style Photo Browser
+
+Purpose: To let user's page through photos via ajax using hash-fragments in the url to preserve document state (not break back button)
+  Requirements: 
+    1) Clickable navigation on top showing next and previous pictures
+    2) Next and Previous buttons
+    3) Clicking the Photo will take you to Next photo
+    4) Using  Left and right arrow keys will go to next or previous photos
+    5) Photos loop at the end and the beginning in the correct direction
+    6) BackButton, bookmarks, and pasted links function correctly
+    7) Page pre-loads next photo for fast viewing
+    8) Photos page correctly if there is no javascript
+    
+    General Approach:
+      - The photoViewer is a state machine that evaluates state every time the either the hash changes in the url, or it is triggered via $(window).trigger('hashchange'), or via a user clicking a photo whose href has been set to a hash-fragment (i.e. "#id=foo")    
+      - Pre-Loaded picture data is stored in a Jquery object attached to the body of the html document
+      - On load if there is no hash in the url, then the document loads normally and queues up the next photo ( handlePhoto() )
+    
+    
+
+*/
+
 var URL = "<%=  request.protocol + request.host_with_port %>/photos/";
     var hashFragments = {};
-    function enqueueNextPicture(loadUrl, nextPictureID) {      
+    
+    /*  
+    enqueuePicture - takes in a url of a picture and its ID. It then loads the result into a data object $body.data keyed
+    to the Photo's ID for future use, and then triggers a hashchange event to evaluate the state of the photo browser.
+    
+    */
+    function enqueuePicture(loadUrl, PictureID) {      
+      console.log("enqueuePicture:" + loadUrl);
       var $body = $('body');
       // Don't load if the data already exists.
-      if ($body.data(nextPictureID.toString())) return;
+      if ($body.data(PictureID.toString())) return;
       $.ajax({
         url: loadUrl ,
         context: document.body,
         beforeSend: function(xhr) {
-          
           xhr.setRequestHeader('Accept', 'text/javascript');
-          $body.data(nextPictureID.toString(), 'loading');
+          $body.data(PictureID.toString(), 'loading');
         },
         success: function(data, status, xhr) {
-          
-          $body.data(nextPictureID.toString(), data);          
+          $body.data(PictureID.toString(), data);          
           $(window).trigger('hashchange'); // check state of application
         }
       });
     }
     
-    function handlePhoto() {            
+    /*  
+    handlePhoto - Gets called after the current photo loads. Replaces urls in links to the appropriate hash fragment. 
+    Enqueues the next photo in the background after current photo has loaded. 
+    */
+    
+    function handlePhoto() {    
+      console.log("handlePhoto:");
+              
       var $container = $('#pic_container_wrapper');
       hashFragments = {
         next:     $container.attr('data-hash_fragment_next'),
@@ -55,18 +87,17 @@ var URL = "<%=  request.protocol + request.host_with_port %>/photos/";
       $container.find('.picture_link').each( function(i, a) {
         $(a).attr('href', '#'+$(a).attr('data-href'));
       });
-      enqueueNextPicture(nextUrl, nextId);
+      enqueuePicture(nextUrl, nextId);
     }
-        
+    
+    //  shows spinning gif and hides other content
     function spinner() {
       $('.loading').show();
       $('.pic_container, .photo-detail, #photo-paging, #photo_count').hide();
     }
     
-    function saveComment(url) {
-  		$.post(url, { message: $('#bucket_textarea').val() }, function() { location.reload(); });
-    }
     
+    // this code is jQuery sugar, allows you to page through photos using left and right buttons
     $(window).keydown( function(event) {
       if (event.keyCode !== 37 && event.keyCode !== 39) return;
       // Left arrow goes back; right arrow goes forward.
@@ -74,18 +105,34 @@ var URL = "<%=  request.protocol + request.host_with_port %>/photos/";
       $.bbq.pushState(newState);
     });
 
+    /* Hash change event acts as a statemachine for the photo browser. 
+    
+    Possible Document States:
+      1) Normal Page load: no ajax; Should pre-load next photo in background
+      2) Copied link is used in url: Photo is hidden until ajax can load the correct photo specified in hash fragment
+      3) Page has loaded, the back button is pressed: show previous photo
+      4) Page has loaded, the main photo is pressed: show next photo
+      5) Page has loaded, a navigation photo is pressed: show photo represented in navigation
+      6) Page has loaded, next or previous buttons are pressed: go-to next or previous photos respectively.
+    
+    */
+    
+
     $(window).bind('hashchange', function(event) {      
+      console.log("hashchange:");
       var hashParams = jQuery.param.fragment();
       if (!hashParams || hashParams === "") {handlePhoto();return;} // load next photo and return, the correct photo is showing     
 
       spinner(); // hide current photo
-      var loadUrl = URL + hashParams;
-      
       var photoID = ($.deparam(hashParams).id).toString();
+      
+      
+      var loadUrl = URL + photoID;
+      
       var $body = $('body'), dataValue = $body.data(photoID);      
       if (!dataValue || dataValue === 'loading') {
         // We haven't loaded this photo's HTML yet. Put the request in the queue. 
-        enqueueNextPicture(loadUrl, photoID);        
+        enqueuePicture(loadUrl, photoID);        
       } else {
         // Show Currently cached content
         $('#photo_nav_block').html(dataValue);
