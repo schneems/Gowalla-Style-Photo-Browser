@@ -1,0 +1,70 @@
+<%
+  next_url               = "#{photo_url(@next_photo)}"
+  previous_url           = "#{photo_url(@previous_photo)}"
+  next_hash_fragment     = "id=#{@next_photo.id}"
+  previous_hash_fragment ="id=#{@previous_photo.id}"
+%>
+
+
+
+
+<div id="pic_container_wrapper" data-hash_fragment_next="<%= raw(next_hash_fragment) %>"
+ data-hash_fragment_previous="<%= raw(previous_hash_fragment) %>" data-url_next="<%= raw(next_url) %>"
+ data-photo_id_next="<%= @next_photo.id %>">
+
+	<div id="main">
+
+		<header class="subnav">
+			<h2>
+			  <strong>Photo</strong> 
+			  <span id="photo_count"><%= "#{(@photos.index(@photo) + 1).to_s} of #{@photos.count}" %></span>
+			</h2>
+	</header>
+
+		<div id="photo-viewer" class="stage">
+			  
+		<% if @photos.count > 1 %><%# Don't show paging if there is only one photo. %>	
+			<div id="photo-paging">
+				<% preview_photos_previous = @photos.previous(@photo).limit(2).reverse %>
+				<%= link_to  image_tag("previous.png", :height => 50, :width => 50), previous_url, :class => "previous_photo_link photo-prev " %>
+					<% (2 - preview_photos_previous.count).times do |i| %>
+						<%= photo_placeholder %>
+					<% end %>
+
+					<% preview_photos_previous.each do |photo| %>
+						<%= nav_photo(:photo => photo) %>
+					<% end %>
+						
+					  <%= nav_photo(:photo => @photo, :class => "selected" )%>
+						
+					<% preview_photos_next = @photos.next(@photo).limit(2).each do |photo| %>
+						<%= nav_photo(:photo => photo )%>
+					<% end %>
+					<% (2 - preview_photos_next.count).times do |i| %>
+						<%= photo_placeholder %>
+					<% end %>
+
+				<%= link_to image_tag("next.png", :height => 50, :width => 50), next_url, :class => "next_photo_link photo-next"%>
+		  </div> <!-- #photo-paging -->
+		<% end %>
+
+		<div class="center pic_container">
+			<%=
+  			link_to(
+  			  image_tag(
+  			    @photo.image.url
+  			  ),
+  			  next_url,
+  			  { :id => @photo.id, :class => "next_photo_link" }
+  			)
+			%>
+		</div> <!-- .pic-container -->
+
+		<%# Style hacks to get the spinner in the center. %>
+		<div id="loading" class="center loading" style="display: none; height: 320px; width: 480px;">
+			<%= image_tag "spinner.gif", :style => "margin: 150px 0 0 140px;" %>
+		</div>
+		</div>
+		
+	</div>
+</div>

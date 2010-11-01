@@ -1,0 +1,100 @@
+
+
+
+
+<p id="notice"><%= notice %></p>
+<%# image_tag @photo.image.url %>
+
+<%= link_to 'Edit', edit_photo_path(@photo) %> |
+<%= link_to 'Back', photos_path %>
+
+
+<div id="photo_nav_block">
+  <%= render :partial => "photo" %>
+</div>
+
+
+<script type="text/javascript">
+var URL = "<%=  request.protocol + request.host_with_port %>/photos/";
+    var hashFragments = {};
+    function enqueueNextPicture(loadUrl, nextPictureID) {      
+      var $body = $('body');
+      // Don't load if the data already exists.
+      if ($body.data(nextPictureID.toString())) return;
+      $.ajax({
+        url: loadUrl ,
+        context: document.body,
+        beforeSend: function(xhr) {
+          
+          xhr.setRequestHeader('Accept', 'text/javascript');
+          $body.data(nextPictureID.toString(), 'loading');
+        },
+        success: function(data, status, xhr) {
+          
+          $body.data(nextPictureID.toString(), data);          
+          $(window).trigger('hashchange'); // check state of application
+        }
+      });
+    }
+    
+    function handlePhoto() {            
+      var $container = $('#pic_container_wrapper');
+      hashFragments = {
+        next:     $container.attr('data-hash_fragment_next'),
+        previous: $container.attr('data-hash_fragment_previous')
+      };
+      
+      $('.next_photo_link').attr('href', '#'+hashFragments.next);
+      $('.previous_photo_link').attr('href', '#'+hashFragments.previous);
+      
+      var nextUrl = $container.attr('data-url_next')
+      var nextId  = $container.attr('data-photo_id_next');
+      
+      // Replace all the static URLs with Ajax-y URLs now that we know
+      // JavaScript is enabled.
+      $container.find('.picture_link').each( function(i, a) {
+        $(a).attr('href', '#'+$(a).attr('data-href'));
+      });
+      enqueueNextPicture(nextUrl, nextId);
+    }
+        
+    function spinner() {
+      $('.loading').show();
+      $('.pic_container, .photo-detail, #photo-paging, #photo_count').hide();
+    }
+    
+    function saveComment(url) {
+  		$.post(url, { message: $('#bucket_textarea').val() }, function() { location.reload(); });
+    }
+    
+    $(window).keydown( function(event) {
+      if (event.keyCode !== 37 && event.keyCode !== 39) return;
+      // Left arrow goes back; right arrow goes forward.
+      var newState = (event.keyCode === 37) ? hashFragments.previous : hashFragments.next;
+      $.bbq.pushState(newState);
+    });
+
+    $(window).bind('hashchange', function(event) {      
+      var hashParams = jQuery.param.fragment();
+      if (!hashParams || hashParams === "") {handlePhoto();return;} // load next photo and return, the correct photo is showing     
+
+      spinner(); // hide current photo
+      var loadUrl = URL + hashParams;
+      
+      var photoID = ($.deparam(hashParams).id).toString();
+      var $body = $('body'), dataValue = $body.data(photoID);      
+      if (!dataValue || dataValue === 'loading') {
+        // We haven't loaded this photo's HTML yet. Put the request in the queue. 
+        enqueueNextPicture(loadUrl, photoID);        
+      } else {
+        // Show Currently cached content
+        $('#photo_nav_block').html(dataValue);
+        handlePhoto();
+      }
+    });
+    
+    
+    $(window).trigger('hashchange');
+
+
+</script>
