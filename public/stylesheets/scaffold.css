@@ -1,4 +1,5 @@
-body { background-color: #fff; color: #333; }
+
+
 
 body, p, ol, ul, td {
   font-family: verdana, arial, helvetica, sans-serif;
@@ -14,7 +15,6 @@ pre {
 
 a { color: #000; }
 a:visited { color: #666; }
-a:hover { color: #fff; background-color:#000; }
 
 div.field, div.actions {
   margin-bottom: 10px;
@@ -54,3 +54,78 @@ div.field, div.actions {
   font-size: 12px;
   list-style: square;
 }
+
+
+
+#header {
+	margin: none;
+	background: white url(http://gowalla.com/images/rainbow.gif) repeat-x -500% 0px;
+	
+}
+
+.left {
+	text-align: left;
+}
+
+#header h1 a {
+background-image:url("/images/logo-sm-sprite.png");
+background-position:0 0;
+background-repeat:no-repeat;
+display:block;
+height:50px;
+overflow:hidden;
+text-indent:200px;
+white-space:nowrap;
+width:104px;
+}
+
+#header h1 {position:relative;
+	}
+	
+	
+#header {
+	width: 100%;
+	
+}
+
+#header h1 span {
+	position:absolute;
+	left: 100px;
+	bottom:15px;
+	font-size: 15px;
+}
+
+#header h1 a:hover,
+#header h1 a:focus {
+	background-position: 0 -50px;
+}
+
+html, body, #header, h1, h3, #notice, hr {
+	margin: 0 0 0 0 ;
+	padding: 0 0 0 0;
+}
+
+html {
+	background: url("/images/texture.gif") repeat scroll left top #F3F3F3;
+	
+}
+
+#content {
+	background-color:white;
+	width: 400px;
+	margin: 0 auto 0;
+	text-align:center;
+}#selector {
+	background: url('../images/next.png') no-repeat scroll top left;
+	width: 90px;
+	height: 90px;
+}
+
+img {
+	border: none;
+}
+
+#header {margin: 0 auto 0;}
+
+
+#title {margin: 0 25% 0 ;}

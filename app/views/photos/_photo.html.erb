@@ -5,24 +5,20 @@
   previous_hash_fragment ="id=#{@previous_photo.id}"
 %>
 
-
-
-
 <div id="pic_container_wrapper" data-hash_fragment_next="<%= raw(next_hash_fragment) %>"
  data-hash_fragment_previous="<%= raw(previous_hash_fragment) %>" data-url_next="<%= raw(next_url) %>"
  data-photo_id_next="<%= @next_photo.id %>">
 
 	<div id="main">
 
-		<header class="subnav">
-			<h2>
+		<header class="subnav left">
+			<h3>
 			  <strong>Photo</strong> 
 			  <span id="photo_count"><%= "#{(@photos.index(@photo) + 1).to_s} of #{@photos.count}" %></span>
-			</h2>
+			</h3>
 	</header>
-
-		<div id="photo-viewer" class="stage">
-			  
+		<div id="photo-viewer" class="stage">	  
+    
 		<% if @photos.count > 1 %><%# Don't show paging if there is only one photo. %>	
 			<div id="photo-paging">
 				<% preview_photos_previous = @photos.previous(@photo).limit(2).reverse %>
@@ -47,7 +43,8 @@
 				<%= link_to image_tag("next.png", :height => 50, :width => 50), next_url, :class => "next_photo_link photo-next"%>
 		  </div> <!-- #photo-paging -->
 		<% end %>
-
+		
+    <br />
 		<div class="center pic_container">
 			<%=
   			link_to(
